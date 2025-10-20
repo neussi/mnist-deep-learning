@@ -1,0 +1,59 @@
+services:
+  # Service API MNIST
+  mnist-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: mnist-api
+    ports:
+      - "5000:5000"
+    environment:
+      - MODEL_PATH=/app/models/mnist_model.h5
+      - FLASK_ENV=production
+    volumes:
+      - ./models:/app/models:ro  # Lecture seule
+      - ./logs:/app/logs
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    networks:
+      - mnist-network
+    deploy:
+      resources:
+        limits:
+          cpus: '2'
+          memory: 2G
+        reservations:
+          cpus: '1'
+          memory: 1G
+
+  # Service MLflow (optionnel pour le tracking)
+  mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.9.2
+    container_name: mlflow-server
+    ports:
+      - "5001:5000"
+    volumes:
+      - ./mlruns:/mlflow/mlruns
+      - ./mlartifacts:/mlflow/mlartifacts
+    command: >
+      mlflow server
+      --host 0.0.0.0
+      --port 5000
+      --backend-store-uri file:///mlflow/mlruns
+      --default-artifact-root file:///mlflow/mlartifacts
+    networks:
+      - mnist-network
+    restart: unless-stopped
+
+networks:
+  mnist-network:
+    driver: bridge
+
+volumes:
+  mlruns-data:
+  models-data:

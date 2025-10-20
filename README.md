@@ -22,7 +22,7 @@ Ce projet implémente un système complet de classification de chiffres manuscri
 ### Installation rapide
 ```bash
 # Cloner le projet
-git clone <votre-repo>
+git clone git@github.com:neussi/mnist-deep-learning.git
 cd mnist-deep-learning
 
 # Exécuter le script d'installation
